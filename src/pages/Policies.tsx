@@ -34,7 +34,7 @@ const Policies = () => {
     {
       id: 'life-1',
       title: 'Term Life Insurance',
-      description: 'Protect your family's financial future with our term life insurance plan.',
+      description: 'Protect your family\'s financial future with our term life insurance plan.',
       premium: 75,
       duration: '10 Years',
       popular: false,
