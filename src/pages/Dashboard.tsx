@@ -1,13 +1,24 @@
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Shield, Users, Clock, Bell, X, Check, ArrowRight } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Shield, Users, Clock, Bell } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import PolicyCard from '@/components/PolicyCard';
 
 const Dashboard = () => {
   const [greeting, setGreeting] = useState('');
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3);
+  const { toast } = useToast();
   
   // Set greeting based on time of day
   useEffect(() => {
@@ -45,6 +56,56 @@ const Dashboard = () => {
     { id: 2, message: 'New recommended policy: Home Insurance Plus', time: '1 day ago' },
     { id: 3, message: 'Payment confirmed for Vehicle Insurance', time: '3 days ago' }
   ];
+
+  const dismissNotification = (id: number) => {
+    // In a real app, this would call an API to dismiss the notification
+    toast({
+      title: "Notification dismissed",
+      description: "The notification has been removed from your list."
+    });
+    
+    if (notificationCount > 0) {
+      setNotificationCount(notificationCount - 1);
+    }
+  };
+  
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'payment':
+        toast({
+          title: "Make a Payment",
+          description: "Payment feature will be available soon."
+        });
+        break;
+      case 'claim':
+        toast({
+          title: "File a Claim",
+          description: "Claim filing will be available soon."
+        });
+        break;
+      case 'documents':
+        toast({
+          title: "View Documents",
+          description: "Document management will be available soon."
+        });
+        break;
+      case 'support':
+        toast({
+          title: "Contact Support",
+          description: "Redirecting you to our support team."
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleLearnMore = () => {
+    toast({
+      title: "Premium Family Health Plan",
+      description: "Learn more about our comprehensive family coverage."
+    });
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -63,12 +124,64 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="mt-4 md:mt-0">
-              <div className="relative">
-                <button className="bg-insurance-gray-light/80 p-2 rounded-full text-insurance-blue-dark relative">
-                  <Bell size={20} />
-                  <span className="absolute top-0 right-0 w-2 h-2 bg-insurance-red rounded-full"></span>
-                </button>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {notificationCount > 0 && (
+                      <span className="absolute top-0 right-0 h-4 w-4 bg-insurance-red text-white text-xs flex items-center justify-center rounded-full">
+                        {notificationCount}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Notifications</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-auto p-1 text-xs"
+                      onClick={() => setNotificationCount(0)}
+                    >
+                      Mark all as read
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification.id} 
+                        className="bg-gray-50 p-3 rounded-lg flex justify-between items-start"
+                      >
+                        <div>
+                          <p className="text-sm">{notification.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6" 
+                          onClick={() => dismissNotification(notification.id)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-3 pt-2 border-t border-gray-100">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="w-full justify-center text-insurance-blue"
+                      onClick={() => setShowAllNotifications(true)}
+                    >
+                      View All Notifications
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </section>
@@ -135,7 +248,16 @@ const Dashboard = () => {
                 ))}
               </div>
               <div className="bg-gray-50 p-3 text-center">
-                <button className="text-insurance-blue text-sm font-medium hover:text-insurance-blue-dark">
+                <button 
+                  className="text-insurance-blue text-sm font-medium hover:text-insurance-blue-dark"
+                  onClick={() => {
+                    setShowAllNotifications(true);
+                    toast({
+                      title: "Notifications",
+                      description: "All notifications page will be available soon."
+                    });
+                  }}
+                >
                   View All Notifications
                 </button>
               </div>
@@ -146,16 +268,28 @@ const Dashboard = () => {
               <h2 className="text-xl font-bold mb-4 text-insurance-blue-dark">Quick Actions</h2>
               <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="grid grid-cols-2 divide-x divide-y divide-gray-100">
-                  <button className="p-4 hover:bg-gray-50 transition-colors">
+                  <button 
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                    onClick={() => handleQuickAction('payment')}
+                  >
                     <p className="font-medium text-insurance-blue-dark">Make a Payment</p>
                   </button>
-                  <button className="p-4 hover:bg-gray-50 transition-colors">
+                  <button 
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                    onClick={() => handleQuickAction('claim')}
+                  >
                     <p className="font-medium text-insurance-blue-dark">File a Claim</p>
                   </button>
-                  <button className="p-4 hover:bg-gray-50 transition-colors">
+                  <button 
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                    onClick={() => handleQuickAction('documents')}
+                  >
                     <p className="font-medium text-insurance-blue-dark">View Documents</p>
                   </button>
-                  <button className="p-4 hover:bg-gray-50 transition-colors">
+                  <button 
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                    onClick={() => handleQuickAction('support')}
+                  >
                     <p className="font-medium text-insurance-blue-dark">Contact Support</p>
                   </button>
                 </div>
@@ -168,9 +302,9 @@ const Dashboard = () => {
         <section className="mt-12 opacity-0 animate-fade-in animate-delay-400">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-insurance-blue-dark">Recommended For You</h2>
-            <a href="/policies" className="text-insurance-blue hover:text-insurance-blue-dark text-sm font-medium">
+            <Link to="/policies" className="text-insurance-blue hover:text-insurance-blue-dark text-sm font-medium">
               View All Policies
-            </a>
+            </Link>
           </div>
           
           <div className="bg-gradient-to-r from-insurance-blue-light/30 to-insurance-blue/10 p-6 rounded-xl">
@@ -181,33 +315,31 @@ const Dashboard = () => {
                   Comprehensive coverage for your entire family with special benefits and wellness programs.
                 </p>
                 <div className="text-insurance-blue-dark font-bold text-lg mb-4">$299<span className="text-sm font-normal text-gray-600">/month</span></div>
-                <button className="btn-primary">Learn More</button>
+                <Button 
+                  className="btn-primary flex items-center"
+                  onClick={handleLearnMore}
+                >
+                  Learn More
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
               <div className="md:w-2/3 bg-white p-4 rounded-lg shadow-md">
                 <h4 className="font-medium text-gray-800 mb-2">Key Benefits:</h4>
                 <ul className="space-y-2">
                   <li className="flex items-start">
-                    <svg className="w-5 h-5 text-insurance-green mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="h-5 w-5 text-insurance-green mr-2 mt-0.5 flex-shrink-0" />
                     <span>Complete coverage for hospitalization and surgeries</span>
                   </li>
                   <li className="flex items-start">
-                    <svg className="w-5 h-5 text-insurance-green mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="h-5 w-5 text-insurance-green mr-2 mt-0.5 flex-shrink-0" />
                     <span>24/7 telemedicine access with zero copay</span>
                   </li>
                   <li className="flex items-start">
-                    <svg className="w-5 h-5 text-insurance-green mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="h-5 w-5 text-insurance-green mr-2 mt-0.5 flex-shrink-0" />
                     <span>Wellness programs and preventive care benefits</span>
                   </li>
                   <li className="flex items-start">
-                    <svg className="w-5 h-5 text-insurance-green mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="h-5 w-5 text-insurance-green mr-2 mt-0.5 flex-shrink-0" />
                     <span>Coverage for pre-existing conditions after waiting period</span>
                   </li>
                 </ul>

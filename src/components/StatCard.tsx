@@ -1,84 +1,77 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card } from "@/components/ui/card";
 
 interface StatCardProps {
   icon: React.ReactNode;
   title: string;
-  value: number;
+  value: number | string;
   suffix?: string;
-  color: string;
+  color?: 'blue' | 'green' | 'purple' | 'amber';
   delay?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ 
-  icon, 
-  title, 
-  value, 
-  suffix = "", 
-  color,
-  delay = 0 
-}) => {
-  const [count, setCount] = useState(0);
+const StatCard: React.FC<StatCardProps> = ({ icon, title, value, suffix = '', color = 'blue', delay = 0 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
-    const duration = 2000; // Animation duration in ms
-    const increment = value / (duration / 50); // Increment per step
-    let timer: number;
-    let currentCount = 0;
+    let animationTimeout: NodeJS.Timeout | null = null;
     
-    // Add delay before starting animation
-    const startTimeout = setTimeout(() => {
-      timer = setInterval(() => {
-        currentCount += increment;
-        if (currentCount >= value) {
-          clearInterval(timer);
-          setCount(value);
+    // Delay the animation based on the delay prop
+    if (delay) {
+      animationTimeout = setTimeout(() => {
+        if (typeof value === 'number') {
+          let start = 0;
+          const duration = 1000; // ms
+          const step = Math.max(1, Math.floor((value as number) / (duration / 16))); // 60 fps ideally
+          
+          const timer = setInterval(() => {
+            start += step;
+            if (start > value) {
+              setDisplayValue(value as number);
+              clearInterval(timer);
+            } else {
+              setDisplayValue(start);
+            }
+          }, 16);
         } else {
-          setCount(Math.floor(currentCount));
+          setDisplayValue(value as unknown as number);
         }
-      }, 50);
-    }, delay);
+      }, delay);
+    }
     
     return () => {
-      clearTimeout(startTimeout);
-      clearInterval(timer);
+      if (animationTimeout) {
+        clearTimeout(animationTimeout);
+      }
     };
   }, [value, delay]);
+  
+  const getColorClass = () => {
+    switch (color) {
+      case 'blue': return 'text-insurance-blue bg-insurance-blue/10';
+      case 'green': return 'text-insurance-green bg-insurance-green/10';
+      case 'purple': return 'text-purple-500 bg-purple-500/10';
+      case 'amber': return 'text-amber-500 bg-amber-500/10';
+      default: return 'text-insurance-blue bg-insurance-blue/10';
+    }
+  };
 
   return (
-    <div className={`glass-card rounded-xl p-6 relative overflow-hidden group ${
-      color === 'blue' ? 'shadow-blue-500/20' : 
-      color === 'green' ? 'shadow-green-500/20' : 'shadow-purple-500/20'
-    }`}>
-      <div className={`absolute top-0 left-0 h-1 w-full ${
-        color === 'blue' ? 'bg-insurance-blue' : 
-        color === 'green' ? 'bg-insurance-green' : 'bg-purple-500'
-      }`}></div>
-      
+    <Card className="p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden group">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-gray-500 font-medium text-sm mb-1">{title}</h3>
-          <div className="flex items-baseline">
-            <span className="text-3xl font-bold text-insurance-blue-dark">
-              {count}
-            </span>
+          <p className="text-sm text-gray-500 font-medium mb-1">{title}</p>
+          <h3 className="text-2xl md:text-3xl font-bold flex items-baseline">
+            {typeof value === 'number' ? displayValue : value}
             {suffix && <span className="text-sm text-gray-500 ml-1">{suffix}</span>}
-          </div>
+          </h3>
         </div>
-        <div className={`rounded-full p-3 ${
-          color === 'blue' ? 'bg-insurance-blue/10 text-insurance-blue' : 
-          color === 'green' ? 'bg-insurance-green/10 text-insurance-green' : 
-          'bg-purple-500/10 text-purple-500'
-        } transition-all duration-300 group-hover:scale-110`}>
+        <div className={`p-3 rounded-full ${getColorClass()} transition-all duration-300 group-hover:scale-110`}>
           {icon}
         </div>
       </div>
-      
-      <div className={`absolute bottom-0 right-0 h-20 w-20 rounded-full -mr-10 -mb-10 opacity-10 ${
-        color === 'blue' ? 'bg-insurance-blue' : 
-        color === 'green' ? 'bg-insurance-green' : 'bg-purple-500'
-      } transform transition-all duration-300 group-hover:scale-150`}></div>
-    </div>
+    </Card>
   );
 };
 
